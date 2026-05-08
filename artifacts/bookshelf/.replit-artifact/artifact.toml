@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Bookshelf"
+version = "1.0.0"
+id = "artifacts/bookshelf"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22235
+
+[services.development]
+run = "pnpm --filter @workspace/bookshelf run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bookshelf", "run", "build" ]
+publicDir = "artifacts/bookshelf/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22235"
+BASE_PATH = "/"
