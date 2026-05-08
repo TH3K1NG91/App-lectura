@@ -256,7 +256,7 @@ router.post("/books/:bookId/download", optionalAuth, async (req: any, res): Prom
     .set({ downloadCount: book.downloadCount + 1 })
     .where(eq(booksTable.id, bookId));
 
-  const fileUrl = `/api/storage/objects${book.fileObjectPath}`;
+  const fileUrl = `/api/storage/objects${book.fileObjectPath.replace(/^\/objects/, "")}`;
   res.json({ fileUrl });
 });
 

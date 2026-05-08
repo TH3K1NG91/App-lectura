@@ -25,7 +25,8 @@ export default function Me() {
   const { data: booksData } = useGetUserBooks(
     me?.clerkId ?? "",
     { includePrivate: true },
-    { query: { enabled: !!me?.clerkId } },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  { query: { enabled: !!me?.clerkId } as any },
   );
 
   const updateMe = useUpdateMe();

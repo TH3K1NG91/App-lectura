@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "@clerk/react": "^6.6.0",
-    "@clerk/themes": "^2.4.57"
+    "@clerk/themes": "^2.4.57",
+    "epubjs": "^0.3.93"
   }
 }
