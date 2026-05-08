@@ -121,5 +121,14 @@ router.get("/users/:userId", async (req, res): Promise<void> => {
   });
 });
 
-export { requireAuth, getOrCreateUser, buildAvatarUrl };
+function optionalAuth(req: any, _res: any, next: any) {
+  const auth = getAuth(req);
+  const userId = auth?.userId;
+  if (userId) {
+    req.clerkUserId = userId;
+  }
+  next();
+}
+
+export { requireAuth, optionalAuth, getOrCreateUser, buildAvatarUrl };
 export default router;

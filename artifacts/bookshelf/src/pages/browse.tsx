@@ -89,7 +89,7 @@ export default function Browse() {
                 <div className="relative aspect-[2/3] mb-3 overflow-hidden rounded-md border border-border shadow-sm group-hover:shadow-md transition-all duration-300">
                   {book.coverObjectPath ? (
                     <img 
-                      src={`/api/storage/objects${book.coverObjectPath}`} 
+                      src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`} 
                       alt={`Cover of ${book.title}`}
                       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />

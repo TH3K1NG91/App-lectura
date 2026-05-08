@@ -2,11 +2,11 @@ import { Router, type IRouter } from "express";
 import { and, asc, eq } from "drizzle-orm";
 import { db, commentsTable, booksTable, usersTable } from "@workspace/db";
 import { CreateCommentBody } from "@workspace/api-zod";
-import { requireAuth, getOrCreateUser, buildAvatarUrl } from "./users";
+import { requireAuth, optionalAuth, getOrCreateUser, buildAvatarUrl } from "./users";
 
 const router: IRouter = Router();
 
-router.get("/books/:bookId/comments", async (req, res): Promise<void> => {
+router.get("/books/:bookId/comments", optionalAuth, async (req: any, res): Promise<void> => {
   const raw = Array.isArray(req.params.bookId) ? req.params.bookId[0] : req.params.bookId;
   const bookId = parseInt(raw, 10);
 

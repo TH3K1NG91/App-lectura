@@ -8,7 +8,7 @@ import {
   GetTrendingBooksQueryParams,
   GetUserBooksQueryParams,
 } from "@workspace/api-zod";
-import { requireAuth, getOrCreateUser, buildAvatarUrl } from "./users";
+import { requireAuth, optionalAuth, getOrCreateUser, buildAvatarUrl } from "./users";
 
 const router: IRouter = Router();
 
@@ -59,7 +59,7 @@ async function buildBook(
   };
 }
 
-router.get("/books", async (req: any, res): Promise<void> => {
+router.get("/books", optionalAuth, async (req: any, res): Promise<void> => {
   const parsed = ListPublicBooksQueryParams.safeParse(req.query);
   const params = parsed.success ? parsed.data : { limit: 20, offset: 0 };
   const auth = req.clerkUserId;
@@ -102,7 +102,7 @@ router.get("/books", async (req: any, res): Promise<void> => {
   res.json({ books, total: total ?? 0 });
 });
 
-router.get("/books/trending", async (req: any, res): Promise<void> => {
+router.get("/books/trending", optionalAuth, async (req: any, res): Promise<void> => {
   const parsed = GetTrendingBooksQueryParams.safeParse(req.query);
   const limit = parsed.success ? (parsed.data.limit ?? 10) : 10;
 
@@ -117,7 +117,7 @@ router.get("/books/trending", async (req: any, res): Promise<void> => {
   res.json({ books, total: books.length });
 });
 
-router.get("/books/:bookId", async (req: any, res): Promise<void> => {
+router.get("/books/:bookId", optionalAuth, async (req: any, res): Promise<void> => {
   const raw = Array.isArray(req.params.bookId) ? req.params.bookId[0] : req.params.bookId;
   const bookId = parseInt(raw, 10);
 
@@ -232,7 +232,7 @@ router.delete("/books/:bookId", requireAuth, async (req: any, res): Promise<void
   res.sendStatus(204);
 });
 
-router.post("/books/:bookId/download", async (req: any, res): Promise<void> => {
+router.post("/books/:bookId/download", optionalAuth, async (req: any, res): Promise<void> => {
   const raw = Array.isArray(req.params.bookId) ? req.params.bookId[0] : req.params.bookId;
   const bookId = parseInt(raw, 10);
 
@@ -260,7 +260,7 @@ router.post("/books/:bookId/download", async (req: any, res): Promise<void> => {
   res.json({ fileUrl });
 });
 
-router.get("/users/:userId/books", async (req: any, res): Promise<void> => {
+router.get("/users/:userId/books", optionalAuth, async (req: any, res): Promise<void> => {
   const raw = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
   const parsed = GetUserBooksQueryParams.safeParse(req.query);
   const includePrivate = parsed.success ? (parsed.data.includePrivate ?? false) : false;

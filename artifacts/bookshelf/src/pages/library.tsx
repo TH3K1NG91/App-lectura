@@ -74,7 +74,7 @@ export default function Library() {
                   <div className="w-16 md:w-20 aspect-[2/3] rounded-md overflow-hidden border border-border bg-amber-50">
                     {book.coverObjectPath ? (
                       <img
-                        src={`/api/storage/objects${book.coverObjectPath}`}
+                        src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`}
                         alt={`Cover of ${book.title}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

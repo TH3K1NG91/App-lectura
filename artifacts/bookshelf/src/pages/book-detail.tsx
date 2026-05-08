@@ -178,7 +178,7 @@ export default function BookDetail({ bookId }: { bookId: string }) {
           <div className="aspect-[2/3] rounded-xl overflow-hidden border border-border shadow-lg bg-amber-50">
             {book.coverObjectPath ? (
               <img
-                src={`/api/storage/objects${book.coverObjectPath}`}
+                src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`}
                 alt={`Cover of ${book.title}`}
                 className="w-full h-full object-cover"
               />

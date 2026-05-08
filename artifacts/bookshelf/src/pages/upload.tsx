@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { useCreateBook, useRequestUploadUrl } from "@workspace/api-client-react";
+import { useCreateBook, useRequestUploadUrl, getListPublicBooksQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +46,7 @@ export default function Upload() {
   const bookFileRef = useRef<HTMLInputElement>(null);
   const coverFileRef = useRef<HTMLInputElement>(null);
 
+  const queryClient = useQueryClient();
   const createBook = useCreateBook();
   const requestUploadUrl = useRequestUploadUrl();
 
@@ -113,6 +115,8 @@ export default function Upload() {
           },
           {
             onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: getListPublicBooksQueryKey() });
+              queryClient.invalidateQueries({ queryKey: ["/api/users"] });
               toast({ title: "Book uploaded successfully!" });
               setLocation("/profile/me");
               resolve();
