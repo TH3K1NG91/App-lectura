@@ -65,7 +65,7 @@ PORT = "22235"
 BASE_PATH = "/"
 
 [agent]
-stack = "PNPM_WORKSPACE"
+stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
 
 [postMerge]
