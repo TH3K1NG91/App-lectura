@@ -24,6 +24,7 @@ export const GetMeResponse = zod.object({
   displayName: zod.string().nullish(),
   bio: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
+  bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
 });
@@ -36,6 +37,7 @@ export const UpdateMeBody = zod.object({
   displayName: zod.string().optional(),
   bio: zod.string().optional(),
   avatarObjectPath: zod.string().optional(),
+  bannerObjectPath: zod.string().optional(),
 });
 
 export const UpdateMeResponse = zod.object({
@@ -45,6 +47,7 @@ export const UpdateMeResponse = zod.object({
   displayName: zod.string().nullish(),
   bio: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
+  bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
 });
@@ -63,6 +66,7 @@ export const GetUserProfileResponse = zod.object({
   displayName: zod.string().nullish(),
   bio: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
+  bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
 });
@@ -187,6 +191,8 @@ export const UpdateBookBody = zod.object({
   description: zod.string().optional(),
   genre: zod.string().optional(),
   coverObjectPath: zod.string().optional(),
+  fileObjectPath: zod.string().optional(),
+  fileFormat: zod.enum(["pdf", "epub"]).optional(),
   isPublic: zod.boolean().optional(),
 });
 
@@ -362,6 +368,7 @@ export const ListConversationsResponse = zod.object({
         displayName: zod.string().nullish(),
         bio: zod.string().nullish(),
         avatarUrl: zod.string().nullish(),
+        bannerUrl: zod.string().nullish(),
         bookCount: zod.number().optional(),
         createdAt: zod.coerce.date(),
       }),
@@ -403,6 +410,7 @@ export const GetMessagesResponse = zod.object({
     displayName: zod.string().nullish(),
     bio: zod.string().nullish(),
     avatarUrl: zod.string().nullish(),
+    bannerUrl: zod.string().nullish(),
     bookCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
   }),

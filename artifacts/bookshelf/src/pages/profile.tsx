@@ -5,27 +5,30 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Download, MessageCircle, MessageSquare, CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { coverUrl } from "@/lib/cover-url";
 
 function formatDate(d: string | Date) {
-  return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long" });
+  return new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "long" });
 }
 
 export default function Profile({ userId }: { userId: string }) {
+  const { t } = useTranslation();
   const { data: user, isLoading: userLoading } = useGetUserProfile(userId);
   const { data: booksData, isLoading: booksLoading } = useGetUserBooks(userId);
 
   if (userLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex gap-6 mb-10">
+      <div className="max-w-5xl mx-auto">
+        <Skeleton className="h-44 w-full rounded-b-2xl" />
+        <div className="px-4 sm:px-6 -mt-10 mb-10 flex gap-6">
           <Skeleton className="h-24 w-24 rounded-full shrink-0" />
-          <div className="flex-1 space-y-3 pt-2">
+          <div className="flex-1 space-y-3 pt-14">
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-64" />
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        <div className="px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="aspect-[2/3] w-full rounded-md" />
@@ -47,46 +50,65 @@ export default function Profile({ userId }: { userId: string }) {
   }
 
   const displayName = user.displayName || user.username;
+  const bannerUrl = (user as any).bannerUrl;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Profile Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10 p-6 bg-card rounded-2xl border border-border">
-        <Avatar className="h-20 w-20 border-2 border-border">
-          <AvatarImage src={user.avatarUrl ?? undefined} />
-          <AvatarFallback className="text-2xl bg-amber-100 text-amber-800 font-serif">
-            {displayName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+    <div className="max-w-5xl mx-auto pb-12">
+      {/* Banner */}
+      <div className="relative h-44 sm:h-56 rounded-b-2xl overflow-hidden">
+        {bannerUrl ? (
+          <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-amber-100 via-orange-50 to-amber-200" />
+        )}
+      </div>
 
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-serif font-bold text-foreground">{displayName}</h1>
-          <p className="text-muted-foreground text-sm mb-2">@{user.username}</p>
-          {user.bio && <p className="text-sm text-foreground/80 leading-relaxed max-w-xl mb-3">{user.bio}</p>}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <BookOpen className="h-4 w-4" />
-              {user.bookCount} {user.bookCount === 1 ? "book" : "books"}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CalendarDays className="h-4 w-4" />
-              Joined {formatDate(user.createdAt)}
-            </span>
+      {/* Profile header */}
+      <div className="px-4 sm:px-6 -mt-12 mb-8">
+        <div className="flex flex-col sm:flex-row items-start gap-5">
+          <div className="shrink-0">
+            <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+              <AvatarImage src={user.avatarUrl ?? undefined} />
+              <AvatarFallback className="text-2xl bg-amber-100 text-amber-800 font-serif">
+                {displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          <div className="flex-1 min-w-0 pt-14 sm:pt-14">
+            <div className="flex items-start justify-between gap-4 mb-1">
+              <div>
+                <h1 className="text-2xl font-serif font-bold text-foreground">{displayName}</h1>
+                <p className="text-muted-foreground text-sm mb-2">@{user.username}</p>
+              </div>
+              <Link href={`/messages/${userId}`}>
+                <Button variant="outline" className="gap-2 shrink-0">
+                  <MessageSquare className="h-4 w-4" />
+                  {t("profile.dmButton")}
+                </Button>
+              </Link>
+            </div>
+            {user.bio && (
+              <p className="text-sm text-foreground/80 leading-relaxed max-w-xl mb-3">{user.bio}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4" />
+                {user.bookCount} {user.bookCount === 1 ? t("profile.book") : t("profile.books")}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" />
+                {t("profile.joinedDate")} {formatDate(user.createdAt)}
+              </span>
+            </div>
           </div>
         </div>
-
-        <Link href={`/messages/${userId}`}>
-          <Button variant="outline" className="gap-2 shrink-0">
-            <MessageSquare className="h-4 w-4" />
-            Message
-          </Button>
-        </Link>
       </div>
 
       {/* Books */}
-      <div>
+      <div className="px-4 sm:px-6">
         <h2 className="text-xl font-serif font-bold mb-6 text-foreground">
-          Books by {displayName}
+          {t("profile.publicBooks")} {displayName}
         </h2>
 
         {booksLoading && (
@@ -103,7 +125,7 @@ export default function Profile({ userId }: { userId: string }) {
         {!booksLoading && (booksData?.books.length === 0 || !booksData) && (
           <div className="py-16 text-center bg-card/50 rounded-xl border border-dashed border-border">
             <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-            <p className="text-muted-foreground">No public books yet.</p>
+            <p className="text-muted-foreground">{t("profile.noBooksPublic")}</p>
           </div>
         )}
 
@@ -115,7 +137,7 @@ export default function Profile({ userId }: { userId: string }) {
                   <div className="relative aspect-[2/3] mb-3 overflow-hidden rounded-md border border-border shadow-sm group-hover:shadow-md transition-all duration-300">
                     {book.coverObjectPath ? (
                       <img
-                        src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`}
+                        src={coverUrl(book.coverObjectPath)!}
                         alt={book.title}
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                       />

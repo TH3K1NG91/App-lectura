@@ -1,9 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { Show, useUser, useClerk } from "@clerk/react";
-import { BookOpen, Library as LibraryIcon, MessageSquare, PlusCircle, Search, User as UserIcon, LogOut } from "lucide-react";
+import { BookOpen, Library as LibraryIcon, MessageSquare, PlusCircle, User as UserIcon, LogOut, Globe } from "lucide-react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useTranslation } from "react-i18next";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +20,7 @@ function Navbar() {
   const [location] = useLocation();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { t, i18n } = useTranslation();
 
   const isActive = (path: string) => location === path;
 
@@ -32,26 +35,49 @@ function Navbar() {
         <Show when="signed-in">
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/browse" className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/browse") ? "text-primary" : "text-muted-foreground"}`}>
-              Browse
+              {t("nav.browse")}
             </Link>
             <Link href="/library" className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/library") ? "text-primary" : "text-muted-foreground"}`}>
-              Library
+              {t("nav.library")}
             </Link>
             <Link href="/messages" className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/messages") ? "text-primary" : "text-muted-foreground"}`}>
-              Messages
+              {t("nav.messages")}
             </Link>
           </nav>
         </Show>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs uppercase font-semibold">{i18n.language?.slice(0, 2) || "en"}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">{t("language.label")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => i18n.changeLanguage(lang.code)}
+                  className={`cursor-pointer text-sm ${i18n.language?.startsWith(lang.code) ? "font-semibold text-primary" : ""}`}
+                >
+                  {lang.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Show when="signed-in">
             <Link href="/upload" className="hidden sm:flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-9">
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Upload
+                {t("nav.upload")}
               </Button>
             </Link>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -74,42 +100,42 @@ function Navbar() {
                 <Link href="/profile/me">
                   <DropdownMenuItem className="cursor-pointer">
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>{t("nav.profile")}</span>
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/library">
                   <DropdownMenuItem className="cursor-pointer md:hidden">
                     <LibraryIcon className="mr-2 h-4 w-4" />
-                    <span>Library</span>
+                    <span>{t("nav.library")}</span>
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/messages">
                   <DropdownMenuItem className="cursor-pointer md:hidden">
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Messages</span>
+                    <span>{t("nav.messages")}</span>
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/upload">
                   <DropdownMenuItem className="cursor-pointer sm:hidden">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    <span>Upload Book</span>
+                    <span>{t("upload.title")}</span>
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{t("nav.logOut")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </Show>
-          
+
           <Show when="signed-out">
             <Link href="/sign-in">
-              <Button variant="ghost" size="sm">Sign In</Button>
+              <Button variant="ghost" size="sm">{t("nav.signIn")}</Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm">Get Started</Button>
+              <Button size="sm">{t("nav.getStarted")}</Button>
             </Link>
           </Show>
         </div>

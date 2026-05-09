@@ -3,20 +3,20 @@ import { Link } from "wouter";
 import { useListPublicBooks } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Download, MessageCircle, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { coverUrl } from "@/lib/cover-url";
 
-const GENRES = ["All", "Fiction", "Non-Fiction", "Fantasy", "Romance", "Mystery", "Sci-Fi", "Biography", "History", "Self-Help"];
+const GENRES = ["All", "Fiction", "Classic Literature", "Non-Fiction", "Fantasy", "Romance", "Mystery", "Science Fiction", "Biography", "History", "Adventure", "Poetry", "Drama", "Historical Fiction", "Self-Help"];
 
 export default function Browse() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
 
-  // Using a simple timeout for debounce
-  // In a real app we'd use a useDebounce hook
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
@@ -33,15 +33,15 @@ export default function Browse() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Discover Books</h1>
-          <p className="text-muted-foreground mt-1">Explore our collection of stories from the community</p>
+          <h1 className="text-3xl font-serif font-bold text-foreground">{t("browse.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("browse.subtitle")}</p>
         </div>
         
         <div className="w-full md:w-auto flex items-center relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             type="search" 
-            placeholder="Search titles or authors..." 
+            placeholder={t("browse.searchPlaceholder")} 
             className="pl-9 w-full md:w-80 bg-card"
             value={search}
             onChange={handleSearch}
@@ -75,7 +75,7 @@ export default function Browse() {
             </div>
           ))}
         </div>
-      ) : data?.books.length === 0 ? (
+      ) : (data?.books?.length ?? 0) === 0 ? (
         <div className="py-20 text-center flex flex-col items-center bg-card/50 rounded-xl border border-border border-dashed">
           <BookOpen className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
           <h3 className="text-xl font-bold mb-2">No books found</h3>
@@ -89,7 +89,7 @@ export default function Browse() {
                 <div className="relative aspect-[2/3] mb-3 overflow-hidden rounded-md border border-border shadow-sm group-hover:shadow-md transition-all duration-300">
                   {book.coverObjectPath ? (
                     <img 
-                      src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`} 
+                      src={coverUrl(book.coverObjectPath)!} 
                       alt={`Cover of ${book.title}`}
                       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />

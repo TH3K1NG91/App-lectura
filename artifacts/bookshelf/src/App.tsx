@@ -2,8 +2,15 @@ import { useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
-import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
+import {
+  Switch,
+  Route,
+  useLocation,
+  Router as WouterRouter,
+  Redirect,
+} from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
@@ -61,7 +68,8 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-card rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-border",
+    cardBox:
+      "bg-card rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-border",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
     headerTitle: "text-2xl font-serif font-bold text-foreground",
@@ -76,9 +84,11 @@ const clerkAppearance = {
     alertText: "text-destructive",
     logoBox: "mb-4",
     logoImage: "w-12 h-12 object-contain",
-    socialButtonsBlockButton: "border-border hover:bg-accent hover:text-accent-foreground",
+    socialButtonsBlockButton:
+      "border-border hover:bg-accent hover:text-accent-foreground",
     formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90",
-    formFieldInput: "bg-background border-input text-foreground focus:ring-ring",
+    formFieldInput:
+      "bg-background border-input text-foreground focus:ring-ring",
     footerAction: "mt-4",
     dividerLine: "bg-border",
     alert: "bg-destructive/10 border-destructive text-destructive",
@@ -91,7 +101,11 @@ const clerkAppearance = {
 function SignInPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-12">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+      />
     </div>
   );
 }
@@ -99,15 +113,26 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 py-12">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+      />
     </div>
   );
 }
 
 function ClerkQueryClientCacheInvalidator() {
-  const { addListener } = useClerk();
+  const { addListener, session } = useClerk();
   const queryClient = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    setAuthTokenGetter(async () => {
+      if (!session) return null;
+      return session.getToken();
+    });
+  }, [session]);
 
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
@@ -139,7 +164,11 @@ function HomeRedirect() {
   );
 }
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+function ProtectedRoute({
+  component: Component,
+}: {
+  component: React.ComponentType<any>;
+}) {
   return (
     <>
       <Show when="signed-in">
@@ -185,32 +214,56 @@ function ClerkProviderWithRoutes() {
           <Route path="/" component={HomeRedirect} />
           <Route path="/sign-in/*?" component={SignInPage} />
           <Route path="/sign-up/*?" component={SignUpPage} />
-          
+
           <Route path="/browse">
-            <Layout><Browse /></Layout>
+            <Layout>
+              <Browse />
+            </Layout>
           </Route>
           <Route path="/book/:bookId">
-            {(params) => <Layout><BookDetail bookId={params.bookId!} /></Layout>}
+            {(params) => (
+              <Layout>
+                <BookDetail bookId={params.bookId!} />
+              </Layout>
+            )}
           </Route>
-          <Route path="/profile/:userId">
-            {(params) => <Layout><Profile userId={params.userId!} /></Layout>}
-          </Route>
-          
+
           {/* Protected routes */}
           <Route path="/library">
-            <Layout><ProtectedRoute component={Library} /></Layout>
+            <Layout>
+              <ProtectedRoute component={Library} />
+            </Layout>
           </Route>
           <Route path="/upload">
-            <Layout><ProtectedRoute component={Upload} /></Layout>
+            <Layout>
+              <ProtectedRoute component={Upload} />
+            </Layout>
           </Route>
           <Route path="/profile/me">
-            <Layout><ProtectedRoute component={Me} /></Layout>
+            <Layout>
+              <ProtectedRoute component={Me} />
+            </Layout>
+          </Route>
+          <Route path="/profile/:userId">
+            {(params) => (
+              <Layout>
+                <Profile userId={params.userId!} />
+              </Layout>
+            )}
           </Route>
           <Route path="/messages">
-            <Layout><ProtectedRoute component={Messages} /></Layout>
+            <Layout>
+              <ProtectedRoute component={Messages} />
+            </Layout>
           </Route>
           <Route path="/messages/:userId">
-            {(params) => <Layout><ProtectedRoute component={() => <Chat userId={params.userId!} />} /></Layout>}
+            {(params) => (
+              <Layout>
+                <ProtectedRoute
+                  component={() => <Chat userId={params.userId!} />}
+                />
+              </Layout>
+            )}
           </Route>
 
           <Route component={NotFound} />

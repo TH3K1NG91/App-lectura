@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Download, Bookmark, BookmarkCheck, MessageCircle } from "lucide-react";
+import { BookOpen, Download, BookmarkCheck, MessageCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { coverUrl } from "@/lib/cover-url";
 
 function formatDate(d: string | Date) {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function Library() {
+  const { t } = useTranslation();
   const { data, isLoading, refetch } = useGetMyLibrary();
   const removeFromLibrary = useRemoveFromLibrary();
   const { toast } = useToast();
@@ -31,8 +34,8 @@ export default function Library() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-foreground">My Library</h1>
-        <p className="text-muted-foreground mt-1">Books you have saved for later</p>
+        <h1 className="text-3xl font-serif font-bold text-foreground">{t("library.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("library.subtitle")}</p>
       </div>
 
       {isLoading && (
@@ -53,10 +56,10 @@ export default function Library() {
       {!isLoading && data?.entries.length === 0 && (
         <div className="py-20 text-center flex flex-col items-center bg-card/50 rounded-xl border border-dashed border-border">
           <BookOpen className="h-12 w-12 text-muted-foreground mb-4 opacity-40" />
-          <h3 className="text-xl font-bold mb-2">Your library is empty</h3>
-          <p className="text-muted-foreground mb-6">Start browsing and save books to your collection.</p>
+          <h3 className="text-xl font-bold mb-2">{t("library.empty")}</h3>
+          <p className="text-muted-foreground mb-6">{t("library.emptyHint")}</p>
           <Link href="/browse">
-            <Button>Browse Books</Button>
+            <Button>{t("library.browseCta")}</Button>
           </Link>
         </div>
       )}
@@ -74,7 +77,7 @@ export default function Library() {
                   <div className="w-16 md:w-20 aspect-[2/3] rounded-md overflow-hidden border border-border bg-amber-50">
                     {book.coverObjectPath ? (
                       <img
-                        src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`}
+                        src={coverUrl(book.coverObjectPath)!}
                         alt={`Cover of ${book.title}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

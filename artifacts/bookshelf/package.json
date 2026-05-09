@@ -77,6 +77,9 @@
   "dependencies": {
     "@clerk/react": "^6.6.0",
     "@clerk/themes": "^2.4.57",
-    "epubjs": "^0.3.93"
+    "epubjs": "^0.3.93",
+    "i18next": "^26.0.10",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "react-i18next": "^17.0.7"
   }
 }

@@ -23,6 +23,8 @@ export interface UserProfile {
   bio?: string | null;
   /** @nullable */
   avatarUrl?: string | null;
+  /** @nullable */
+  bannerUrl?: string | null;
   bookCount?: number;
   createdAt: string;
 }
@@ -32,6 +34,7 @@ export interface UpdateUserBody {
   displayName?: string;
   bio?: string;
   avatarObjectPath?: string;
+  bannerObjectPath?: string;
 }
 
 export type BookFileFormat =
@@ -86,11 +89,21 @@ export interface CreateBookBody {
   isPublic?: boolean;
 }
 
+export type UpdateBookBodyFileFormat =
+  (typeof UpdateBookBodyFileFormat)[keyof typeof UpdateBookBodyFileFormat];
+
+export const UpdateBookBodyFileFormat = {
+  pdf: "pdf",
+  epub: "epub",
+} as const;
+
 export interface UpdateBookBody {
   title?: string;
   description?: string;
   genre?: string;
   coverObjectPath?: string;
+  fileObjectPath?: string;
+  fileFormat?: UpdateBookBodyFileFormat;
   isPublic?: boolean;
 }
 

@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "import-gutenberg": "tsx ./src/import-gutenberg.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/pg": "^8.18.0",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "catalog:",
+    "pg": "^8.20.0",
     "tsx": "catalog:"
   }
 }

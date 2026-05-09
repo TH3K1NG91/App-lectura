@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
   displayName: text("display_name"),
   bio: text("bio"),
   avatarObjectPath: text("avatar_object_path"),
+  bannerObjectPath: text("banner_object_path"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

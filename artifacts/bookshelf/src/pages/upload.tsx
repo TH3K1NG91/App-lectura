@@ -13,17 +13,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, BookOpen, X, FileText, ImagePlus } from "lucide-react";
 
-const GENRES = ["Fiction", "Non-Fiction", "Fantasy", "Romance", "Mystery", "Sci-Fi", "Biography", "History", "Self-Help"];
+const GENRES = [
+  "Fiction",
+  "Non-Fiction",
+  "Fantasy",
+  "Romance",
+  "Mystery",
+  "Sci-Fi",
+  "Biography",
+  "History",
+  "Self-Help",
+];
 
 async function uploadFile(
   file: File,
-  requestUploadUrl: (data: { name: string; size: number; contentType: string }) => Promise<{ uploadURL: string; objectPath: string }>,
+  requestUploadUrl: (data: {
+    name: string;
+    size: number;
+    contentType: string;
+  }) => Promise<{ uploadURL: string; objectPath: string }>,
 ): Promise<string> {
   const { uploadURL, objectPath } = await requestUploadUrl({
     name: file.name,
@@ -55,7 +75,9 @@ export default function Upload() {
   const [bookFile, setBookFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [existingCoverPath, setExistingCoverPath] = useState<string | null>(null);
+  const [existingCoverPath, setExistingCoverPath] = useState<string | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formReady, setFormReady] = useState(!isEditMode);
 
@@ -68,7 +90,10 @@ export default function Upload() {
   const requestUploadUrl = useRequestUploadUrl();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: existingBook, isLoading: isLoadingBook } = useGetBook(editBookId ?? 0, { query: { enabled: isEditMode } as any });
+  const { data: existingBook, isLoading: isLoadingBook } = useGetBook(
+    editBookId ?? 0,
+    { query: { enabled: isEditMode } as any },
+  );
 
   useEffect(() => {
     if (isEditMode && existingBook) {
@@ -90,7 +115,8 @@ export default function Upload() {
     if (!file) return;
     setCoverFile(file);
     setExistingCoverPath(null);
-    if (coverPreview && !coverPreview.startsWith("/api/")) URL.revokeObjectURL(coverPreview);
+    if (coverPreview && !coverPreview.startsWith("/api/"))
+      URL.revokeObjectURL(coverPreview);
     const url = URL.createObjectURL(file);
     setCoverPreview(url);
   }
@@ -104,7 +130,8 @@ export default function Upload() {
   function removeCover() {
     setCoverFile(null);
     setExistingCoverPath(null);
-    if (coverPreview && !coverPreview.startsWith("/api/")) URL.revokeObjectURL(coverPreview);
+    if (coverPreview && !coverPreview.startsWith("/api/"))
+      URL.revokeObjectURL(coverPreview);
     setCoverPreview(null);
     if (coverFileRef.current) coverFileRef.current.value = "";
   }
@@ -122,13 +149,19 @@ export default function Upload() {
 
     setIsSubmitting(true);
     try {
-      const doRequest = (data: { name: string; size: number; contentType: string }) =>
-        new Promise<{ uploadURL: string; objectPath: string }>((resolve, reject) => {
-          requestUploadUrl.mutate(
-            { data },
-            { onSuccess: (r: any) => resolve(r), onError: reject },
-          );
-        });
+      const doRequest = (data: {
+        name: string;
+        size: number;
+        contentType: string;
+      }) =>
+        new Promise<{ uploadURL: string; objectPath: string }>(
+          (resolve, reject) => {
+            requestUploadUrl.mutate(
+              { data },
+              { onSuccess: (r: any) => resolve(r), onError: reject },
+            );
+          },
+        );
 
       let fileObjectPath: string | undefined;
       let fileFormat: string | undefined;
@@ -136,6 +169,7 @@ export default function Upload() {
       if (bookFile) {
         fileObjectPath = await uploadFile(bookFile, doRequest);
         fileFormat = getFileFormat(bookFile);
+        console.log("File uploaded:", fileObjectPath, fileFormat);
       }
 
       let coverObjectPath: string | undefined;
@@ -144,7 +178,18 @@ export default function Upload() {
       } else if (existingCoverPath) {
         coverObjectPath = existingCoverPath;
       }
-
+      console.log("DEBUG:", {
+        fileObjectPath,
+        fileFormat,
+        isEditMode,
+        editBookId,
+      });
+      console.log(
+        "About to update:",
+        isEditMode,
+        editBookId,
+        typeof updateBook.mutate,
+      );
       if (isEditMode && editBookId) {
         await new Promise<void>((resolve, reject) => {
           updateBook.mutate(
@@ -156,14 +201,24 @@ export default function Upload() {
                 genre: genre || undefined,
                 isPublic,
                 coverObjectPath,
-                ...(fileObjectPath && { fileObjectPath, fileFormat }),
+                ...(fileObjectPath && {
+                  fileObjectPath,
+                  fileFormat: fileFormat as "pdf" | "epub",
+                }),
               },
             },
             {
               onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: getListPublicBooksQueryKey() });
+                queryClient.invalidateQueries({
+                  queryKey: getListPublicBooksQueryKey(),
+                });
                 queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-                queryClient.invalidateQueries({ queryKey: [`/api/books/${editBookId}`] });
+                queryClient.invalidateQueries({
+                  queryKey: [`/api/books/${editBookId}`],
+                });
+                queryClient.removeQueries({
+                  queryKey: [`/api/books/${editBookId}`],
+                });
                 toast({ title: "Book updated successfully!" });
                 setLocation(`/book/${editBookId}`);
                 resolve();
@@ -192,7 +247,9 @@ export default function Upload() {
             },
             {
               onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: getListPublicBooksQueryKey() });
+                queryClient.invalidateQueries({
+                  queryKey: getListPublicBooksQueryKey(),
+                });
                 queryClient.invalidateQueries({ queryKey: ["/api/users"] });
                 toast({ title: "Book uploaded successfully!" });
                 setLocation("/profile/me");
@@ -208,7 +265,10 @@ export default function Upload() {
         });
       }
     } catch {
-      toast({ title: "Upload failed. Please try again.", variant: "destructive" });
+      toast({
+        title: "Upload failed. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -232,7 +292,9 @@ export default function Upload() {
           {isEditMode ? "Edit Book" : "Upload a Book"}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {isEditMode ? "Update your book's details below." : "Share your story with the community"}
+          {isEditMode
+            ? "Update your book's details below."
+            : "Share your story with the community"}
         </p>
       </div>
 
@@ -246,10 +308,17 @@ export default function Upload() {
           >
             {coverPreview ? (
               <>
-                <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                <img
+                  src={coverPreview}
+                  alt="Cover preview"
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); removeCover(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeCover();
+                  }}
                   className="absolute top-2 right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -258,7 +327,9 @@ export default function Upload() {
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2 p-4 text-center">
                 <ImagePlus className="h-8 w-8 opacity-40" />
-                <span className="text-xs leading-tight">Click to add cover</span>
+                <span className="text-xs leading-tight">
+                  Click to add cover
+                </span>
               </div>
             )}
           </div>
@@ -274,12 +345,19 @@ export default function Upload() {
         {/* Book File */}
         <div className="space-y-2">
           <Label htmlFor="book-file">
-            Book File {!isEditMode && <span className="text-destructive">*</span>}
-            {isEditMode && <span className="text-muted-foreground text-xs ml-1">(leave empty to keep existing file)</span>}
+            Book File{" "}
+            {!isEditMode && <span className="text-destructive">*</span>}
+            {isEditMode && (
+              <span className="text-muted-foreground text-xs ml-1">
+                (leave empty to keep existing file)
+              </span>
+            )}
           </Label>
           <div
             className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
-              bookFile ? "border-primary/50 bg-primary/5" : "border-border bg-card hover:border-primary/40"
+              bookFile
+                ? "border-primary/50 bg-primary/5"
+                : "border-border bg-card hover:border-primary/40"
             }`}
             onClick={() => bookFileRef.current?.click()}
           >
@@ -294,7 +372,11 @@ export default function Upload() {
                 </div>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setBookFile(null); if (bookFileRef.current) bookFileRef.current.value = ""; }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBookFile(null);
+                    if (bookFileRef.current) bookFileRef.current.value = "";
+                  }}
                   className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
                 >
                   <X className="h-4 w-4" />
@@ -305,9 +387,13 @@ export default function Upload() {
                 <UploadCloud className="h-10 w-10 text-muted-foreground opacity-50" />
                 <div className="text-center">
                   <p className="font-medium text-sm text-muted-foreground">
-                    {isEditMode ? "Click to replace PDF or EPUB" : "Click to upload PDF or EPUB"}
+                    {isEditMode
+                      ? "Click to replace PDF or EPUB"
+                      : "Click to upload PDF or EPUB"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Supported: .pdf, .epub</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supported: .pdf, .epub
+                  </p>
                 </div>
               </>
             )}
@@ -359,7 +445,9 @@ export default function Upload() {
               </SelectTrigger>
               <SelectContent>
                 {GENRES.map((g) => (
-                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -373,7 +461,9 @@ export default function Upload() {
           <div>
             <p className="font-medium text-sm">Make this book public</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {isPublic ? "Anyone can browse and download your book." : "Only you can see this book."}
+              {isPublic
+                ? "Anyone can browse and download your book."
+                : "Only you can see this book."}
             </p>
           </div>
           <Switch checked={isPublic} onCheckedChange={setIsPublic} />
@@ -383,18 +473,26 @@ export default function Upload() {
         <div className="flex gap-3 pt-2">
           <Button
             type="submit"
-            disabled={(!isEditMode && !bookFile) || !title.trim() || isSubmitting}
+            disabled={
+              (!isEditMode && !bookFile) || !title.trim() || isSubmitting
+            }
             className="flex-1 gap-2"
           >
             <BookOpen className="h-4 w-4" />
             {isSubmitting
-              ? isEditMode ? "Saving..." : "Uploading..."
-              : isEditMode ? "Save Changes" : "Publish Book"}
+              ? isEditMode
+                ? "Saving..."
+                : "Uploading..."
+              : isEditMode
+                ? "Save Changes"
+                : "Publish Book"}
           </Button>
           <Button
             type="button"
             variant="outline"
-            onClick={() => setLocation(isEditMode ? `/book/${editBookId}` : "/browse")}
+            onClick={() =>
+              setLocation(isEditMode ? `/book/${editBookId}` : "/browse")
+            }
           >
             Cancel
           </Button>

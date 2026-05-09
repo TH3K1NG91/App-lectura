@@ -634,6 +634,8 @@ components:
           type: ["string", "null"]
         avatarUrl:
           type: ["string", "null"]
+        bannerUrl:
+          type: ["string", "null"]
         bookCount:
           type: integer
         createdAt:
@@ -650,6 +652,8 @@ components:
         bio:
           type: string
         avatarObjectPath:
+          type: string
+        bannerObjectPath:
           type: string
 
     # ── Books ──────────────────────────────────────
@@ -734,6 +738,11 @@ components:
           type: string
         coverObjectPath:
           type: string
+        fileObjectPath:
+          type: string
+        fileFormat:
+          type: string
+          enum: [pdf, epub]
         isPublic:
           type: boolean
 

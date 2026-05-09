@@ -29,9 +29,11 @@ import {
   Lock,
   Send,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { coverUrl } from "@/lib/cover-url";
 
 function formatDate(d: string | Date) {
-  return new Date(d).toLocaleDateString("en-US", {
+  return new Date(d).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -40,10 +42,12 @@ function formatDate(d: string | Date) {
 
 function getFileUrl(objectPath: string | null | undefined): string | null {
   if (!objectPath) return null;
+  if (objectPath.startsWith("http")) return objectPath;
   return `/api/storage/objects${objectPath.replace(/^\/objects/, "")}`;
 }
 
 export default function BookDetail({ bookId }: { bookId: string }) {
+  const { t } = useTranslation();
   const { user, isSignedIn } = useUser();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -218,7 +222,7 @@ export default function BookDetail({ bookId }: { bookId: string }) {
             <div className="aspect-[2/3] rounded-xl overflow-hidden border border-border shadow-lg bg-amber-50">
               {book.coverObjectPath ? (
                 <img
-                  src={`/api/storage/objects${book.coverObjectPath.replace(/^\/objects/, "")}`}
+                  src={coverUrl(book.coverObjectPath)!}
                   alt={`Cover of ${book.title}`}
                   className="w-full h-full object-cover"
                 />
@@ -276,12 +280,12 @@ export default function BookDetail({ bookId }: { bookId: string }) {
             <div className="flex flex-wrap gap-3 mt-auto">
               <Button onClick={handleReadOnline} className="gap-2">
                 <BookOpen className="h-4 w-4" />
-                Read Online
+                {t("book.readOnline")}
               </Button>
 
               <Button onClick={handleDownload} disabled={download.isPending} variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
-                {download.isPending ? "Preparing..." : "Download"}
+                {download.isPending ? "Preparing..." : t("book.download")}
               </Button>
 
               <Button

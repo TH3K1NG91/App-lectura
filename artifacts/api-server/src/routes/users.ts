@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, usersTable, booksTable } from "@workspace/db";
 import { getAuth } from "@clerk/express";
 import { UpdateMeBody } from "@workspace/api-zod";
@@ -35,30 +35,42 @@ async function getOrCreateUser(clerkId: string) {
 
 function buildAvatarUrl(user: typeof usersTable.$inferSelect): string | null {
   if (!user.avatarObjectPath) return null;
-  return `/api/storage/objects${user.avatarObjectPath}`;
+  const path = user.avatarObjectPath.replace(/^\/objects/, "");
+  return `/api/storage/objects${path}`;
+}
+
+function buildBannerUrl(user: typeof usersTable.$inferSelect): string | null {
+  if (!user.bannerObjectPath) return null;
+  const path = user.bannerObjectPath.replace(/^\/objects/, "");
+  return `/api/storage/objects${path}`;
 }
 
 async function getBookCount(clerkId: string): Promise<number> {
-  const books = await db
-    .select({ id: booksTable.id })
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
     .from(booksTable)
     .where(eq(booksTable.authorClerkId, clerkId));
-  return books.length;
+  return count ?? 0;
 }
 
-router.get("/users/me", requireAuth, async (req: any, res): Promise<void> => {
-  const user = await getOrCreateUser(req.clerkUserId);
-  const bookCount = await getBookCount(req.clerkUserId);
-  res.json({
+function serializeUser(user: typeof usersTable.$inferSelect, bookCount: number) {
+  return {
     id: user.id,
     clerkId: user.clerkId,
     username: user.username,
     displayName: user.displayName,
     bio: user.bio,
     avatarUrl: buildAvatarUrl(user),
+    bannerUrl: buildBannerUrl(user),
     bookCount,
     createdAt: user.createdAt,
-  });
+  };
+}
+
+router.get("/users/me", requireAuth, async (req: any, res): Promise<void> => {
+  const user = await getOrCreateUser(req.clerkUserId);
+  const bookCount = await getBookCount(req.clerkUserId);
+  res.json(serializeUser(user, bookCount));
 });
 
 router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
@@ -75,6 +87,7 @@ router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
   if (parsed.data.displayName != null) updates.displayName = parsed.data.displayName;
   if (parsed.data.bio != null) updates.bio = parsed.data.bio;
   if (parsed.data.avatarObjectPath != null) updates.avatarObjectPath = parsed.data.avatarObjectPath;
+  if (parsed.data.bannerObjectPath != null) updates.bannerObjectPath = parsed.data.bannerObjectPath;
 
   const [updated] = await db
     .update(usersTable)
@@ -83,16 +96,7 @@ router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
     .returning();
 
   const bookCount = await getBookCount(req.clerkUserId);
-  res.json({
-    id: updated.id,
-    clerkId: updated.clerkId,
-    username: updated.username,
-    displayName: updated.displayName,
-    bio: updated.bio,
-    avatarUrl: buildAvatarUrl(updated),
-    bookCount,
-    createdAt: updated.createdAt,
-  });
+  res.json(serializeUser(updated, bookCount));
 });
 
 router.get("/users/:userId", async (req, res): Promise<void> => {
@@ -109,16 +113,7 @@ router.get("/users/:userId", async (req, res): Promise<void> => {
   }
 
   const bookCount = await getBookCount(user.clerkId);
-  res.json({
-    id: user.id,
-    clerkId: user.clerkId,
-    username: user.username,
-    displayName: user.displayName,
-    bio: user.bio,
-    avatarUrl: buildAvatarUrl(user),
-    bookCount,
-    createdAt: user.createdAt,
-  });
+  res.json(serializeUser(user, bookCount));
 });
 
 function optionalAuth(req: any, _res: any, next: any) {
