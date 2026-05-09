@@ -65,8 +65,8 @@
   --popover-foreground: 220 20% 15%;
   --popover-border: 40 20% 85%;
   
-  --primary: 35 90% 50%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 43 100% 50%;
+  --primary-foreground: 220 20% 10%;
   
   --secondary: 40 20% 90%;
   --secondary-foreground: 220 20% 15%;
@@ -81,7 +81,7 @@
   --destructive-foreground: 0 0% 100%;
   
   --input: 40 20% 85%;
-  --ring: 35 90% 50%;
+  --ring: 43 100% 50%;
 
   --app-font-sans: 'Geist', 'Inter', sans-serif;
   --app-font-serif: 'Playfair Display', Georgia, serif;
@@ -89,36 +89,37 @@
   --radius: 0.5rem;
 }
 
+/* DARK MODE — Lumina palette */
 .dark {
-  --background: 222 25% 12%;
-  --foreground: 40 33% 95%;
-  --border: 222 20% 25%;
+  --background: 222 36% 11%;
+  --foreground: 220 15% 96%;
+  --border: 217 19% 27%;
   
-  --card: 222 25% 15%;
-  --card-foreground: 40 33% 95%;
-  --card-border: 222 20% 25%;
+  --card: 222 30% 15%;
+  --card-foreground: 220 15% 96%;
+  --card-border: 217 19% 27%;
   
-  --popover: 222 25% 15%;
-  --popover-foreground: 40 33% 95%;
-  --popover-border: 222 20% 25%;
+  --popover: 222 30% 15%;
+  --popover-foreground: 220 15% 96%;
+  --popover-border: 217 19% 27%;
   
-  --primary: 35 90% 50%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 43 100% 50%;
+  --primary-foreground: 222 36% 10%;
   
-  --secondary: 222 20% 20%;
-  --secondary-foreground: 40 33% 95%;
+  --secondary: 217 19% 22%;
+  --secondary-foreground: 220 15% 96%;
   
-  --muted: 222 20% 20%;
-  --muted-foreground: 220 10% 70%;
+  --muted: 217 19% 22%;
+  --muted-foreground: 220 10% 65%;
   
-  --accent: 222 20% 25%;
-  --accent-foreground: 40 33% 95%;
+  --accent: 217 19% 27%;
+  --accent-foreground: 220 15% 96%;
   
   --destructive: 0 62% 30%;
-  --destructive-foreground: 40 33% 95%;
+  --destructive-foreground: 220 15% 96%;
   
-  --input: 222 20% 25%;
-  --ring: 35 90% 50%;
+  --input: 217 19% 27%;
+  --ring: 43 100% 50%;
 }
 
 @layer base {
@@ -129,3 +130,6 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

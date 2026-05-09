@@ -26,6 +26,7 @@ export const GetMeResponse = zod.object({
   avatarUrl: zod.string().nullish(),
   bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
+  genrePreferences: zod.array(zod.string()).nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -38,6 +39,7 @@ export const UpdateMeBody = zod.object({
   bio: zod.string().optional(),
   avatarObjectPath: zod.string().optional(),
   bannerObjectPath: zod.string().optional(),
+  genrePreferences: zod.array(zod.string()).optional(),
 });
 
 export const UpdateMeResponse = zod.object({
@@ -49,7 +51,32 @@ export const UpdateMeResponse = zod.object({
   avatarUrl: zod.string().nullish(),
   bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
+  genrePreferences: zod.array(zod.string()).nullish(),
   createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Search users by username or display name
+ */
+export const SearchUsersQueryParams = zod.object({
+  q: zod.coerce.string(),
+});
+
+export const SearchUsersResponse = zod.object({
+  users: zod.array(
+    zod.object({
+      id: zod.number(),
+      clerkId: zod.string(),
+      username: zod.string(),
+      displayName: zod.string().nullish(),
+      bio: zod.string().nullish(),
+      avatarUrl: zod.string().nullish(),
+      bannerUrl: zod.string().nullish(),
+      bookCount: zod.number().optional(),
+      genrePreferences: zod.array(zod.string()).nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
 });
 
 /**
@@ -68,6 +95,7 @@ export const GetUserProfileResponse = zod.object({
   avatarUrl: zod.string().nullish(),
   bannerUrl: zod.string().nullish(),
   bookCount: zod.number().optional(),
+  genrePreferences: zod.array(zod.string()).nullish(),
   createdAt: zod.coerce.date(),
 });
 
@@ -370,6 +398,7 @@ export const ListConversationsResponse = zod.object({
         avatarUrl: zod.string().nullish(),
         bannerUrl: zod.string().nullish(),
         bookCount: zod.number().optional(),
+        genrePreferences: zod.array(zod.string()).nullish(),
         createdAt: zod.coerce.date(),
       }),
       lastMessage: zod.object({
@@ -412,6 +441,7 @@ export const GetMessagesResponse = zod.object({
     avatarUrl: zod.string().nullish(),
     bannerUrl: zod.string().nullish(),
     bookCount: zod.number().optional(),
+    genrePreferences: zod.array(zod.string()).nullish(),
     createdAt: zod.coerce.date(),
   }),
 });

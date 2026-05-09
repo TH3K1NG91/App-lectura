@@ -26,6 +26,7 @@ export interface UserProfile {
   /** @nullable */
   bannerUrl?: string | null;
   bookCount?: number;
+  genrePreferences?: string[] | null;
   createdAt: string;
 }
 
@@ -35,6 +36,11 @@ export interface UpdateUserBody {
   bio?: string;
   avatarObjectPath?: string;
   bannerObjectPath?: string;
+  genrePreferences?: string[];
+}
+
+export interface UserSearchResponse {
+  users: UserProfile[];
 }
 
 export type BookFileFormat =
@@ -184,6 +190,10 @@ export interface UploadUrlResponse {
   objectPath: string;
   metadata?: UploadUrlRequest;
 }
+
+export type SearchUsersParams = {
+  q: string;
+};
 
 export type ListPublicBooksParams = {
   search?: string;

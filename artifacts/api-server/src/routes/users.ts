@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, ilike, or } from "drizzle-orm";
 import { db, usersTable, booksTable } from "@workspace/db";
 import { getAuth } from "@clerk/express";
 import { UpdateMeBody } from "@workspace/api-zod";
@@ -35,12 +35,14 @@ async function getOrCreateUser(clerkId: string) {
 
 function buildAvatarUrl(user: typeof usersTable.$inferSelect): string | null {
   if (!user.avatarObjectPath) return null;
+  if (user.avatarObjectPath.startsWith("http")) return user.avatarObjectPath;
   const path = user.avatarObjectPath.replace(/^\/objects/, "");
   return `/api/storage/objects${path}`;
 }
 
 function buildBannerUrl(user: typeof usersTable.$inferSelect): string | null {
   if (!user.bannerObjectPath) return null;
+  if (user.bannerObjectPath.startsWith("http")) return user.bannerObjectPath;
   const path = user.bannerObjectPath.replace(/^\/objects/, "");
   return `/api/storage/objects${path}`;
 }
@@ -63,6 +65,7 @@ function serializeUser(user: typeof usersTable.$inferSelect, bookCount: number) 
     avatarUrl: buildAvatarUrl(user),
     bannerUrl: buildBannerUrl(user),
     bookCount,
+    genrePreferences: user.genrePreferences ? JSON.parse(user.genrePreferences) : null,
     createdAt: user.createdAt,
   };
 }
@@ -88,6 +91,9 @@ router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
   if (parsed.data.bio != null) updates.bio = parsed.data.bio;
   if (parsed.data.avatarObjectPath != null) updates.avatarObjectPath = parsed.data.avatarObjectPath;
   if (parsed.data.bannerObjectPath != null) updates.bannerObjectPath = parsed.data.bannerObjectPath;
+  if ((parsed.data as any).genrePreferences != null) {
+    updates.genrePreferences = JSON.stringify((parsed.data as any).genrePreferences);
+  }
 
   const [updated] = await db
     .update(usersTable)
@@ -97,6 +103,34 @@ router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
 
   const bookCount = await getBookCount(req.clerkUserId);
   res.json(serializeUser(updated, bookCount));
+});
+
+router.get("/users/search", async (req, res): Promise<void> => {
+  const q = ((req.query.q as string) || "").trim();
+  if (!q) {
+    res.json({ users: [] });
+    return;
+  }
+
+  const users = await db
+    .select()
+    .from(usersTable)
+    .where(
+      or(
+        ilike(usersTable.username, `%${q}%`),
+        ilike(usersTable.displayName, `%${q}%`),
+      ),
+    )
+    .limit(20);
+
+  const results = await Promise.all(
+    users.map(async (user) => {
+      const bookCount = await getBookCount(user.clerkId);
+      return serializeUser(user, bookCount);
+    }),
+  );
+
+  res.json({ users: results });
 });
 
 router.get("/users/:userId", async (req, res): Promise<void> => {

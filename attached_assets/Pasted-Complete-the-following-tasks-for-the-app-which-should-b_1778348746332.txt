@@ -1,0 +1,20 @@
+Complete the following tasks for the app, which should be renamed Lumina throughout (update the name in the navbar, page title, footer, login/signup screens, and any other place where "Bookshelf" appears):
+Visual identity — apply these colors globally:
+
+Background (dark mode): #121826
+Accent/buttons: #FFB800
+Main text: #F3F4F6
+Secondary/borders: #374151
+Apply these as CSS variables in the global stylesheet and use them consistently across all components in both light and dark mode.
+
+1. Redesign the landing page (home.tsx) — Redesign the page that unauthenticated users see when they first visit the app, inspired by Wattpad's landing page. It should include: a full-width hero section with a dark cinematic background image (use a placeholder or gradient if no image is available), a bold headline like "Lumina. Tu faro literario." and subheadline "Encuentra tu refugio. Enciende tu imaginación.", two CTA buttons ("Únete a la comunidad" and "Explorar libros"), a "How it works" section with 3 icons and descriptions, a "Trending books" carousel showing the most downloaded books, and a footer with the app name and slogan.
+2. Onboarding genre quiz — After a user signs in for the first time (detect this by checking if their profile has no genre preferences saved), show a full-screen onboarding modal or page asking them to select their favorite genres (show all available genres as cards with icons they can toggle). Save their selections to their user profile in a new genrePreferences field. Use this to power a personalized home feed.
+3. Personalized home feed — Replace the current Browse page or create a new authenticated home page that shows personalized book recommendations based on the user's saved genre preferences. Display recommendations in horizontal carousels, one per preferred genre, each with a title like "Porque te gusta Fantasy" and showing 10 books. Refresh recommendations on every page load. If the user has no preferences set, show a prompt to complete the genre quiz.
+4. PDF reader blocked by Chrome — Fix the reader in book-detail.tsx to use an <object> tag or PDF.js viewer instead of a bare iframe. Add correct Content-Security-Policy and X-Frame-Options headers to the file serving endpoint.
+5. Gutenberg books stuck loading in reader — Detect if fileObjectPath starts with http and proxy it through a new /api/proxy/file?url= server endpoint that fetches and streams the file with correct headers.
+6. Gutenberg books download not working — If fileObjectPath starts with http, redirect the user directly to the external URL in the download route.
+7. Import Spanish books — Fetch and import a minimum of 100 Spanish-language books from Project Gutenberg using ?languages=es filter, with covers, descriptions, and genre tags.
+8. Dark mode — Add a persistent dark/light toggle (sun/moon icon) in the navbar. Store preference in localStorage. Default to dark mode. Apply Tailwind dark class strategy across all pages.
+9. Fix genre and search filters — Genre filter buttons in Browse must actually filter results. Search bar must filter by title and author in real time.
+10. User profile search — Add a user search bar (in Browse or a new Users tab). Add backend endpoint GET /api/users/search?q= returning matching users by username or display name. Show results with avatar, username, book count, and link to profile.
+11. Fix all translations — Make sure every UI element, button, label, placeholder, toast message, and navigation item is fully translated in all languages. Set Spanish as the default language. Add these additional languages: Portuguese, Italian, Japanese, Korean, Chinese (Simplified), Chinese (Traditional), Arabic, Hindi, Turkish, Polish, Dutch, Swedish. Use i18next and make sure the language selector in the navbar shows all available languages.
