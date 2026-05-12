@@ -8,6 +8,21 @@ const pool = new pg.Pool({ connectionString: DATABASE_URL });
 const db = drizzle(pool);
 
 const SYSTEM_CLERK_ID = "gutenberg_system";
+
+const args = process.argv.slice(2);
+function getArg(name: string, def: string): string {
+  const idx = args.indexOf(name);
+  if (idx !== -1 && args[idx + 1]) return args[idx + 1];
+  return def;
+}
+function getArgNum(name: string, def: number): number {
+  const val = getArg(name, String(def));
+  return parseInt(val, 10);
+}
+
+const LANG = getArg("--lang", "en");
+const LIMIT = getArgNum("--limit", 150);
+
 const GUTENDEX_URL = "https://gutendex.com/books";
 
 interface GutendexBook {
@@ -77,31 +92,54 @@ async function ensureSystemUser() {
     return;
   }
   await pool.query(
-    "INSERT INTO users (clerk_id, username) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-    [SYSTEM_CLERK_ID, "project_gutenberg"],
+    "INSERT INTO users (clerk_id, username, display_name, bio) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+    [
+      SYSTEM_CLERK_ID,
+      "project_gutenberg",
+      "Project Gutenberg",
+      "Classic public domain literature from Project Gutenberg, free for everyone.",
+    ],
   );
   console.log("Created system user for Project Gutenberg");
 }
 
+async function bookAlreadyExists(title: string): Promise<boolean> {
+  const result = await pool.query(
+    "SELECT id FROM books WHERE author_clerk_id = $1 AND title = $2 LIMIT 1",
+    [SYSTEM_CLERK_ID, title.slice(0, 200)],
+  );
+  return result.rows.length > 0;
+}
+
 async function main() {
-  console.log("Starting Project Gutenberg import...\n");
+  console.log(`\nLumina — Gutenberg Import`);
+  console.log(`Language: ${LANG}, Limit: ${LIMIT}\n`);
 
   await ensureSystemUser();
 
   let imported = 0;
   let skipped = 0;
-  let pageUrl: string | null = `${GUTENDEX_URL}?languages=en`;
+  let pageUrl: string | null = `${GUTENDEX_URL}?languages=${LANG}&sort=popular`;
 
-  while (imported < 60 && pageUrl) {
-    console.log(`Fetching page: ${pageUrl}`);
+  while (imported < LIMIT && pageUrl) {
+    console.log(`Fetching: ${pageUrl}`);
     const page = await fetchPage(pageUrl);
-    console.log(`  → ${page.results.length} results on this page`);
+    console.log(`  → ${page.results.length} results`);
 
     for (const book of page.results) {
-      if (imported >= 60) break;
+      if (imported >= LIMIT) break;
 
       const epubUrl = getEpubUrl(book.formats);
       if (!epubUrl) {
+        skipped++;
+        continue;
+      }
+
+      const titleTrunc = book.title.slice(0, 200);
+
+      const alreadyExists = await bookAlreadyExists(titleTrunc);
+      if (alreadyExists) {
+        console.log(`  [skip] "${titleTrunc.slice(0, 60)}" (already imported)`);
         skipped++;
         continue;
       }
@@ -123,8 +161,8 @@ async function main() {
           `INSERT INTO books (title, description, genre, author_clerk_id, cover_object_path, file_object_path, file_format, is_public, download_count)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
           [
-            book.title.slice(0, 200),
-            description,
+            titleTrunc,
+            description.slice(0, 1000),
             genre,
             SYSTEM_CLERK_ID,
             coverUrl,
@@ -135,17 +173,17 @@ async function main() {
           ],
         );
         imported++;
-        console.log(`  [${imported}] ${book.title.slice(0, 70)}`);
+        console.log(`  [${imported}/${LIMIT}] ${titleTrunc.slice(0, 70)} (${genre})`);
       } catch (err: any) {
-        console.error(`  ✗ "${book.title.slice(0, 50)}": ${err.message}`);
+        console.error(`  ✗ "${titleTrunc.slice(0, 50)}": ${err.message}`);
         skipped++;
       }
     }
 
-    pageUrl = page.next;
+    pageUrl = imported < LIMIT ? page.next : null;
   }
 
-  console.log(`\n✓ Done! Imported ${imported} books, skipped ${skipped}.`);
+  console.log(`\n✓ Done! Imported: ${imported}, Skipped: ${skipped}`);
   await pool.end();
 }
 

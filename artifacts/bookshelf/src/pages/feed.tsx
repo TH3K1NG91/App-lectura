@@ -1,12 +1,14 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "wouter";
-import { useGetMe, useListPublicBooks, useGetTrendingBooks } from "@workspace/api-client-react";
+import { useGetMe, useListPublicBooks, useGetTrendingBooks, useUpdateMe } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, Download, MessageCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { coverUrl } from "@/lib/cover-url";
+import { GenreQuiz } from "@/components/genre-quiz";
+import { useQueryClient } from "@tanstack/react-query";
 
 function BookCard({ book }: { book: any }) {
   return (
@@ -98,6 +100,8 @@ function TrendingCarousel() {
     scrollRef.current.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
   }
 
+  if (!isLoading && (!data?.books || data.books.length === 0)) return null;
+
   return (
     <section className="mb-12">
       <div className="flex items-end justify-between mb-4">
@@ -135,9 +139,24 @@ function TrendingCarousel() {
 
 export default function Feed() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { data: me, isLoading: meLoading } = useGetMe();
+  const updateMe = useUpdateMe();
+  const [showQuiz, setShowQuiz] = useState(false);
 
   const genrePrefs: string[] = (me as any)?.genrePreferences || [];
+
+  async function handleQuizComplete(genres: string[]) {
+    updateMe.mutate(
+      { data: { genrePreferences: genres } as any },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["getMe"] });
+          setShowQuiz(false);
+        },
+      },
+    );
+  }
 
   if (meLoading) {
     return (
@@ -165,6 +184,13 @@ export default function Feed() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {showQuiz && (
+        <GenreQuiz
+          onComplete={handleQuizComplete}
+          onSkip={() => setShowQuiz(false)}
+        />
+      )}
+
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
@@ -192,15 +218,18 @@ export default function Feed() {
           <BookCarousel title="Clásicos" genre="Classic Literature" />
           <BookCarousel title="Aventura" genre="Adventure" />
           <BookCarousel title="Fantasía" genre="Fantasy" />
+          <BookCarousel title="Misterio" genre="Mystery" />
+          <BookCarousel title="Ciencia Ficción" genre="Science Fiction" />
 
           <div className="mt-8 p-6 rounded-2xl bg-card border border-border border-dashed text-center">
             <Sparkles className="h-8 w-8 text-primary mx-auto mb-3" />
             <h3 className="font-serif font-bold text-lg mb-2">{t("feed.noPreferences")}</h3>
-            <Link href="/profile/me">
-              <Button className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                {t("feed.setPreferences")}
-              </Button>
-            </Link>
+            <Button
+              className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => setShowQuiz(true)}
+            >
+              {t("feed.setPreferences")}
+            </Button>
           </div>
         </>
       )}

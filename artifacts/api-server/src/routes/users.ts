@@ -95,6 +95,13 @@ router.patch("/users/me", requireAuth, async (req: any, res): Promise<void> => {
     updates.genrePreferences = JSON.stringify((parsed.data as any).genrePreferences);
   }
 
+  if (Object.keys(updates).length === 0) {
+    const user = await getOrCreateUser(req.clerkUserId);
+    const bookCount = await getBookCount(req.clerkUserId);
+    res.json(serializeUser(user, bookCount));
+    return;
+  }
+
   const [updated] = await db
     .update(usersTable)
     .set(updates)
